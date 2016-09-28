@@ -1,5 +1,12 @@
 package dnasplicing;
 
+import static java.lang.Math.*;
+import static java.lang.System.*;
+import static org.apache.commons.lang3.StringUtils.*;
+import static org.junit.Assert.*;
+
+import sbccunittest.*;
+
 public class LinkedDnaStrand implements DnaStrand {
 
 	private DnaSequenceNode start;
@@ -62,6 +69,59 @@ public class LinkedDnaStrand implements DnaStrand {
 	 * 
 	 * @return A <bold>new</bold> strand leaving the original strand unchanged.
 	 */
+	// @Override
+	// public DnaStrand cutSplice(String enzyme, String splicee) {
+	// if (nodeCount != 1)
+	// throw new IllegalArgumentException("This dna strand has " + this.nodeCount + " nodes. Must have only one");
+	//
+	// LinkedDnaStrand splicedStrand = null;
+	//
+	// String seq = start.dnaSequence;
+	//
+	// int fromIndex = 0;
+	//
+	// this.print();
+	//
+	// while (fromIndex < seq.length()) {
+	// int beginningOfEnzyme = seq.indexOf(enzyme, fromIndex);
+	//
+	// // if the enzyme sequence was not found, the append the rest of the original sequence to the new sequence
+	// if (beginningOfEnzyme != -1) {
+	//
+	// // append the segment before the enzyme
+	// String before = seq.substring(fromIndex, beginningOfEnzyme);
+	//
+	// if (splicedStrand == null)
+	// if (before.length() > 0)
+	// splicedStrand = new LinkedDnaStrand(before);
+	// else {
+	// splicedStrand.append(before);
+	// }
+	//
+	// // add the splicee instead of the replaced enzyme
+	// if (splicedStrand == null)
+	// splicedStrand = new LinkedDnaStrand(splicee);
+	// else {
+	// splicedStrand.append(splicee);
+	// }
+	//
+	// // skip searching the segment that was replaced
+	// fromIndex = beginningOfEnzyme + enzyme.length();
+	// } else {
+	// String substring = seq.substring(fromIndex, seq.length());
+	// if (splicedStrand == null)
+	// splicedStrand = new LinkedDnaStrand(substring);
+	// else
+	// splicedStrand.append(substring);
+	// break;
+	// }
+	// }
+	//
+	// splicedStrand.print();
+	//
+	// return splicedStrand;
+	// }
+	//
 	@Override
 	public DnaStrand cutSplice(String enzyme, String splicee) {
 		if (nodeCount != 1)
@@ -69,48 +129,64 @@ public class LinkedDnaStrand implements DnaStrand {
 
 		LinkedDnaStrand splicedStrand = null;
 
-		String seq = start.dnaSequence;
+		String[] split = start.dnaSequence.split(enzyme);
 
-		int fromIndex = 0;
+		// this.print("=========\nOriginal");
+		// out.println("Length: " + split.length);
+		//
+		// for (String s : split) {
+		// out.print(s + ",");
+		// }
 
-		while (fromIndex < seq.length()) {
-			int beginningOfEnzyme = seq.indexOf(enzyme, fromIndex);
+		int i;
+		if (start.dnaSequence.startsWith(enzyme)) {
+			splicedStrand = new LinkedDnaStrand(splicee);
+			splicedStrand.append(split[1]);
+			i = 2;
+		} else {
+			splicedStrand = new LinkedDnaStrand(split[0]);
+			i = 1;
+		}
+		for (; i < split.length; i++) {
+			// splicedStrand.print("i = " + i);
+			splicedStrand.append(splicee);
+			splicedStrand.append(split[i]);
 
-			// if the enzyme sequence was not found, the append the rest of the original sequence to the new sequence
-			if (beginningOfEnzyme != -1) {
-
-				// append the segment before the enzyme
-				String before = seq.substring(fromIndex, beginningOfEnzyme);
-
-				if (splicedStrand == null)
-					splicedStrand = new LinkedDnaStrand(before);
-				else
-					splicedStrand.append(before);
-
-				// add the splicee instead of the replaced enzyme
-				splicedStrand.append(splicee);
-
-				// skip searching the segment that was replaced
-				fromIndex = beginningOfEnzyme + enzyme.length();
-			} else {
-				String substring = seq.substring(fromIndex, seq.length());
-				if (splicedStrand == null)
-					splicedStrand = new LinkedDnaStrand(substring);
-				else
-					splicedStrand.append(substring);
-				break;
-			}
+		}
+		if (start.dnaSequence.endsWith(enzyme)) {
+			splicedStrand.append(splicee);
 		}
 
+		// splicedStrand.print("Result");
 
 		return splicedStrand;
 	}
 
 
+	private void print(String tag) {
+		out.print(tag + ": ");
+		for (DnaSequenceNode cur = start; cur != null; cur = cur.next) {
+			out.print(cur.dnaSequence);
+			if (cur.next != null)
+				out.print("-");
+		}
+		out.printf("(%d node(s))\n", nodeCount);
+	}
+
+
 	@Override
 	public DnaStrand createReversedDnaStrand() {
-		// TODO Auto-generated method stub
-		return null;
+		this.print("Original");
+		LinkedDnaStrand reversed = null;
+		for (DnaSequenceNode cur = end; cur != null; cur = cur.previous) {
+			String reverse = reverse(cur.dnaSequence);
+			if (reversed == null)
+				reversed = new LinkedDnaStrand(reverse);
+			else
+				reversed.append(reverse);
+		}
+		reversed.print("Reversed");
+		return reversed;
 	}
 
 
@@ -134,17 +210,80 @@ public class LinkedDnaStrand implements DnaStrand {
 
 	@Override
 	public String toString() {
-		String s = "";
+		StringBuilder s = new StringBuilder();
 		DnaSequenceNode current = start;
 		while (current != null) {
-			s += current.dnaSequence;
+			s.append(current.dnaSequence);
 			current = current.next;
 		}
-		if (s.contains("["))
-			throw new IllegalStateException(s + " contains [");
-
-		return s;
+		out.println(s.length());
+		out.println(this.nodeCount);
+		return s.toString();
 	}
 
 
+	public static void main(String... args) {
+		{
+			String dnaSequence = LinkedDnaStrandTester.createRandomDnaSequence(50, 100);
+			String dnaToAppend = LinkedDnaStrandTester.createRandomDnaSequence(5, 10);
+			int numTimesToAppend = (int) (random() * 10);
+			LinkedDnaStrand linkedStrand = new LinkedDnaStrand(dnaSequence);
+			SimpleDnaStrand simpleStrand = new SimpleDnaStrand(dnaSequence);
+
+			for (int ndx = 0; ndx < numTimesToAppend; ndx++) {
+				linkedStrand.append(dnaToAppend);
+				simpleStrand.append(dnaToAppend);
+			}
+
+			assertEquals(simpleStrand.toString(), linkedStrand.toString());
+			assertEquals(numTimesToAppend + 1, linkedStrand.getNodeCount());
+
+			LinkedDnaStrand rl = (LinkedDnaStrand) linkedStrand.createReversedDnaStrand();
+
+			// Verify that the original linked strand wasn't changed
+			DnaSequenceNode node = linkedStrand.getFirstNode();
+			int nodeNdx = 0;
+			while (node != null) {
+				assertEquals("Sequences don't match at node index " + nodeNdx, nodeNdx == 0 ? dnaSequence : dnaToAppend,
+						node.dnaSequence);
+				node = node.next;
+				nodeNdx++;
+			}
+
+			// Verify that the new strand string is reversed
+			assertEquals(simpleStrand.createReversedDnaStrand().toString(), rl.toString());
+			// totalScore += 10;
+
+			// If the new strand has a reverse order of nodes and sequences within each node, give extra
+			// credit
+			int numNodes = linkedStrand.getNodeCount();
+			if (numNodes == rl.getNodeCount()) {
+				// Build array of reversed dna strings from original LinkedDnaStrand. Start at end of
+				// array and move toward
+				// start
+				node = linkedStrand.getFirstNode();
+				String[] reversedDnaSequences = new String[linkedStrand.getNodeCount()];
+				nodeNdx = numNodes - 1;
+				while (node != null) {
+					reversedDnaSequences[nodeNdx] = reverse(node.dnaSequence);
+					node = node.next;
+					nodeNdx--;
+				}
+
+				// Verify that the reversed list's nodes contain the same data as in the array
+				node = rl.getFirstNode();
+				nodeNdx = 0;
+				while (node != null) {
+					if (!node.dnaSequence.equals(reversedDnaSequences[nodeNdx]))
+						break;
+					node = node.next;
+					nodeNdx++;
+				}
+				if (nodeNdx == linkedStrand.getNodeCount()) {
+				}
+				// extraCredit += 5;
+			}
+
+		}
+	}
 }
