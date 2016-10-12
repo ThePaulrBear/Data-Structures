@@ -336,7 +336,7 @@ public class LinkedDnaStrandTester {
 	}
 
 
-	private String createRandomDnaSequence(int minLength, int maxLength) {
+	public static String createRandomDnaSequence(int minLength, int maxLength) {
 		return RandomStringUtils.random((int) (random() * (maxLength - minLength) + minLength), "ACGT");
 	}
 
