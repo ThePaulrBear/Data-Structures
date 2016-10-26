@@ -1,2 +1,5 @@
 .metadata/
 .recommenders/
+.vpp~*
+*.vpp~3
+*.vpp~2
