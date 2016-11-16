@@ -122,22 +122,22 @@ public class BasicSpellChecker implements SpellChecker {
 	 *         </pre>
 	 */
 	public String[] spellCheck(boolean continueFromPrevious) {
-		int start = 0;
-		int end = 0;
+		index = (continueFromPrevious) ? index : 0;
 
-
-		while (matcher.find(start)) {
-			start = matcher.start();
-			end = matcher.end();
+		while (matcher.find(index)) {
+			int start = matcher.start();
+			int end = matcher.end();
+			index = end;
 
 			String word = text.substring(start, end);
 			String[] words = dictionary.find(word);
-			if (words != null)
-				return words;
+			if (words != null) {
+				String[] result = { word, String.valueOf(start), words[0], words[1] };
+				return result;
+			}
 		}
-		;
 
-
+		return null;
 	}
 
 
@@ -164,8 +164,27 @@ public class BasicSpellChecker implements SpellChecker {
 	 * @param replacementText
 	 */
 	public void replaceText(int startIndex, int endIndex, String replacementText) {
-		StringBuilder. text = "oeijr";
-		text.replac
+
+		// // The difference between the word lengths. If the new word is longer, the value is positive.
+		// int replacedTextLength = endIndex - startIndex;
+		// int diff = replacementText.length() - replacedTextLength;
+		// index += diff;
+		index = startIndex + replacementText.length();
+
+		StringBuilder sb = new StringBuilder(text.substring(0, startIndex));
+		sb.append(replacementText);
+		sb.append(text.substring(endIndex, text.length()));
+
+		text = sb.toString();
+		matcher = regex.matcher(text);
 	}
 
+
+	public static void main(String[] args) throws Exception {
+		BasicSpellChecker sc = new BasicSpellChecker();
+		sc.text = "A quick fox jumped over the lazy dog.";
+
+		sc.replaceText(8, 11, "elephant");
+		System.out.println(sc.text);
+	}
 }
