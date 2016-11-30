@@ -88,7 +88,7 @@ public class BasicSorter implements Sorter {
 		// System.out.printf("first index: %6d, length 1st half: %6d, pivot: %6d, length 2nd half: %6d\n", firstIndex,
 		// lengthFirstHalf, pivot, lengthSecondHalf);
 
-		quickSort(data, firstIndex, pivot - firstIndex);
+		quickSort(data, firstIndex, lengthFirstHalf);
 		quickSort(data, pivot, lengthSecondHalf);
 	}
 
@@ -166,11 +166,21 @@ public class BasicSorter implements Sorter {
 	 *            The number of elements in the section to be sorted.
 	 */
 	public void mergeSort(final ArrayList<String> data, int firstIndex, int numberToSort) {
+		if (copy == null) {
+			copy = (ArrayList<String>) data.clone();
+		} else if (copy.size() != data.size()) {
+			throw new RuntimeException("Programming error. Copy should have been erased at the end of the last sort.");
+		}
+
 		// System.out.printf("\n\nFull, before\t[%d - %d]:\t", firstIndex, firstIndex + numberToSort - 1);
 		// printList(data.subList(firstIndex, firstIndex + numberToSort));
 
 		if (numberToSort < 16) {
 			insertionSort(data, firstIndex, numberToSort);
+			// Collections.sort(data.subList(firstIndex, firstIndex + numberToSort));
+			for (int i = firstIndex; i < firstIndex + numberToSort; i++) {
+				copy.set(i, data.get(i));
+			}
 			return;
 		}
 
@@ -183,29 +193,18 @@ public class BasicSorter implements Sorter {
 		// System.out.printf("Left, before\t[%d - %d]:\t", leftStart, leftStart + leftLength - 1);
 		// printList(data.subList(leftStart, leftStart + leftLength));
 
+
 		mergeSort(data, leftStart, leftLength);
-		// System.out.printf("Left, after\t[%d - %d]:\t", leftStart, leftStart + leftLength - 1);
-		// printList(data.subList(leftStart, leftStart + leftLength));
+		// System.out.println("\nAfter Left:");
+		// printSubList(data, leftStart, leftLength, true);
 
-		// System.out.printf("Right, before\t[%d - %d]:\t", rightStart, rightStart + rightLength - 1);
-		// printList(data.subList(rightStart, rightStart + rightLength));
 		mergeSort(data, rightStart, rightLength);
-		// System.out.printf("Right, after\t[%d - %d]:\t", rightStart, rightStart + rightLength - 1);
-		// printList(data.subList(rightStart, rightStart + rightLength));
-
-		// System.out.printf("Merged, before\t[%d - %d]:\t", firstIndex, firstIndex + numberToSort - 1);
-		// List<String> merged = data.subList(firstIndex, firstIndex + numberToSort);
-		// printList(merged);
+		// System.out.println("\nAfter Right:");
+		// printSubList(data, rightStart, rightLength, true);
 
 		merge(data, leftStart, leftLength, rightLength);
-
-		System.out.printf("Merged, after\t[%d - %d]:\t", firstIndex, firstIndex + numberToSort - 1);
-		printList(data.subList(leftStart, leftStart + numberToSort));
-
-		// if (numberToSort > largestMergeLength) {
-		// largestMergeLength = numberToSort;
-		// System.out.printf("Merged length: %6d\n", largestMergeLength);
-		// }
+		// System.out.println("\nAfter Merge:");
+		// printSubList(data, firstIndex, numberToSort, true);
 
 		if (numberToSort == data.size()) {
 			copy = null;
@@ -235,16 +234,18 @@ public class BasicSorter implements Sorter {
 			throw new RuntimeException("Programming error. Copy should have been erased at the end of the last sort.");
 		}
 
-		int leftIndex = firstIndex;
-		int rightIndex = firstIndex + leftSegmentSize;
+		int leftFrom = firstIndex;
+		int leftTo = leftFrom + leftSegmentSize;
+		int rightFrom = leftTo;
+		int rightTo = rightFrom + rightSegmentSize;
 
-		List<String> left = copy.subList(leftIndex, leftIndex + leftSegmentSize);
-		List<String> right = copy.subList(rightIndex, rightIndex + rightSegmentSize);
+		List<String> left = copy.subList(leftFrom, rightFrom);
+		List<String> right = copy.subList(rightFrom, rightTo);
 
-		int dataIndex = leftIndex;
+		int dataIndex = leftFrom;
 
-		leftIndex = 0;
-		rightIndex = 0;
+		int leftIndex = 0;
+		int rightIndex = 0;
 
 		String element;
 		while (leftIndex < left.size() || rightIndex < right.size()) {
@@ -261,11 +262,18 @@ public class BasicSorter implements Sorter {
 			dataIndex++;
 		}
 
-		int lastIndex = firstIndex + leftSegmentSize + rightSegmentSize;
-
-		for (int i = firstIndex; i < lastIndex; i++) {
+		for (int i = leftFrom; i < rightTo; i++) {
 			copy.set(i, data.get(i));
 		}
+
+		// System.out.println("\n\n");
+		// int leftIsSorted = printSubList(left, 0, leftSegmentSize, leftFrom);
+		// int rightIsSorted = printSubList(right, 0, rightSegmentSize, rightFrom);
+		// int mergedIsSorted = printSubList(data, firstIndex, leftSegmentSize + rightSegmentSize);
+		// int copyIsSorted = printSubList(copy, firstIndex, leftSegmentSize + rightSegmentSize);
+		//
+		// System.out.printf("\nleft: %d\tright: %d\tmerged:%d\tcopy:%d\n", leftIsSorted, rightIsSorted, mergedIsSorted,
+		// copyIsSorted);
 
 	}
 
@@ -300,27 +308,51 @@ public class BasicSorter implements Sorter {
 		BasicSorter sorter = new BasicSorter();
 
 		ArrayList<String> list = new ArrayList<>();
-		String[] b = new String[32];
+		String[] b = new String[1000];
 
 		for (int i = 0; i < b.length; i++) {
-			b[i] = String.valueOf((char) (random.nextInt(26) + 65));
+			b[i] = String.valueOf((char) (random.nextInt(26) + 65)) + String.valueOf((char) (random.nextInt(26) + 65));
 		}
-
-		// String[] b = { "S", "D", "G", "C" };
-
 
 		Collections.addAll(list, b);
 
-		int firstIndex = 0;
-		sorter.mergeSort(list, firstIndex, list.size() - firstIndex);
+		int offset = 0;
+		sorter.mergeSort(list, offset, list.size() - offset);
 
-		printList(list);
+		List<String> subList = list.subList(offset, list.size());
+		printList(subList);
+		System.out.println("Index out of order: " + isInOrder(subList));
+	}
+
+
+	private static int isInOrder(List<String> list) {
+		for (int i = 1; i < list.size(); i++) {
+			if (list.get(i - 1).compareTo(list.get(i)) > 0)
+				return i;
+		}
+		return -1;
+	}
+
+
+	private static int printSubList(List<String> list, int firstIndex, int sublistLength) {
+		return printSubList(list, firstIndex, sublistLength, 0);
+	}
+
+
+	private static int printSubList(List<String> list, int firstIndex, int sublistLength, int offset) {
+		List<String> subList = list.subList(firstIndex, firstIndex + sublistLength);
+
+		System.out.printf("[%d-%d]:", offset + firstIndex, offset + firstIndex + sublistLength - 1);
+		printList(subList);
+		return isInOrder(subList);
 	}
 
 
 	private static void printList(List<String> list) {
-		for (String s : list) {
-			System.out.print(s + "\t");
+		for (int i = 0; i < list.size(); i++) {
+			// if (i % 16 == 0 && i > 0)
+			// System.out.print("\n");
+			System.out.print(list.get(i) + "\t");
 		}
 		System.out.println();
 	}
