@@ -18,6 +18,8 @@ public class BasicSorter implements Sorter {
 	 *            The number of elements in the section to be sorted.
 	 */
 	public void insertionSort(ArrayList<String> data, int firstIndex, int numberToSort) {
+		if (numberToSort < 0)
+			throw new IllegalArgumentException("NumberToSort must be greater thatn zero, but was: " + numberToSort);
 		/*
 		 * (1) For each unsorted element: (a) For each sorted element, starting at the right-end of the sorted section
 		 * (i) Compare the unsorted element with the sorted element. (ii)If the unsorted element is less than the sorted
@@ -75,21 +77,26 @@ public class BasicSorter implements Sorter {
 		 * 
 		 */
 
-
 		if (numberToSort < 16) {
 			insertionSort(data, firstIndex, numberToSort);
 			return;
 		}
 
 		int pivot = partition(data, firstIndex, numberToSort);
-		int lengthFirstHalf = pivot - firstIndex;
-		int lengthSecondHalf = numberToSort - lengthFirstHalf;
+		int leftLength = pivot - firstIndex;
+		int rightLength = numberToSort - leftLength;
 
-		// System.out.printf("first index: %6d, length 1st half: %6d, pivot: %6d, length 2nd half: %6d\n", firstIndex,
-		// lengthFirstHalf, pivot, lengthSecondHalf);
+		System.out.printf("\nAfter Partition, pivot: %d, data[pivot]: %s\n", pivot, data.get(pivot));
+		printSubList(data, firstIndex, leftLength);
+		printSubList(data, pivot, rightLength);
 
-		quickSort(data, firstIndex, lengthFirstHalf);
-		quickSort(data, pivot, lengthSecondHalf);
+		quickSort(data, firstIndex, leftLength);
+		quickSort(data, pivot, rightLength);
+
+		System.out.println("\nAfter QuickSort:");
+		int leftIsSorted = printSubList(data, firstIndex, leftLength);
+		int rightIsSorted = printSubList(data, pivot, rightLength);
+		System.out.printf("left: %d, right: %d\n\n", leftIsSorted, rightIsSorted);
 	}
 
 
@@ -103,47 +110,64 @@ public class BasicSorter implements Sorter {
 	 * @return The index, relative to data[0], where the pivot value is located at the end of this partitioning.
 	 */
 	public int partition(final ArrayList<String> data, final int firstIndex, final int numberToPartition) {
+		List<String> sublist = data.subList(firstIndex, firstIndex + numberToPartition);
+		int pivot = random.nextInt(numberToPartition); // medianIndex(data, a, b, c);
 
-		int a = random.nextInt(numberToPartition) + firstIndex;
-		// int b = random.nextInt(numberToPartition) + firstIndex;
-		// int c = random.nextInt(numberToPartition) + firstIndex;
+		// Move the randomly selected pivot to index=0
+		Collections.swap(sublist, pivot, 0);
+		pivot = 0;
 
-		int pivot = a; // medianIndex(data, a, b, c);
-
-		Collections.swap(data, pivot, firstIndex);
-		pivot = firstIndex;
+		// start at the index right after the pivot
 		int low = pivot + 1;
-		int high = firstIndex + numberToPartition - 1;
 
+		// start the high index at the last index of the sub array.
+		int high = numberToPartition - 1;
+
+		// When high == low, breaks
 		while (low < high) {
 
-			if (data.get(low).compareTo(data.get(pivot)) <= 0) {
+			if (sublist.get(low).compareTo(sublist.get(pivot)) <= 0) {
 				// if low < pivot
 				// increase low index.
 				low++;
 			} else {
-				if (data.get(high).compareTo(data.get(pivot)) <= 0) {
-					// if low > pivot and high < pivot
-					// switch high and low.
-					Collections.swap(data, low, high);
+				if (sublist.get(high).compareTo(sublist.get(pivot)) <= 0) {
+					// low > pivot and high < pivot,
+					// so switch high and low.
+					Collections.swap(sublist, low, high);
 				}
-				// decrease high index.
-				// if low > pivot and high > pivot
-				// decrease high index
-
+				// low > pivot and high > pivot,
+				// so decrease high index
 				high--;
 			}
-			// printList(data);
 		}
+
+		Collections.swap(sublist, pivot, high);
 		pivot = high;
-		Collections.swap(data, firstIndex, pivot);
-		return pivot;
+
+		for (int i = 0; i < pivot; i++) {
+			if (sublist.get(i).compareTo(sublist.get(pivot)) > 0) {
+				printSubList(sublist, 0, pivot + 1);
+				throw new RuntimeException("not partitioned");
+			}
+		}
+
+		for (int i = pivot; i < numberToPartition; i++) {
+			if (sublist.get(i).compareTo(sublist.get(pivot)) < 0)
+				throw new RuntimeException("not partitioned");
+		}
+
+		return pivot + firstIndex;
 	}
 
 
 	// TODO
-	private int medianIndex(ArrayList<String> data, int a, int b, int c) {
-		// TODO Auto-generated method stub
+	private static int medianIndex(ArrayList<String> data, int a, int b, int c) {
+		// if(data.get(a).compareTo(data.get(b)) < 0 && data.get(a).compareTo(data.get(c)) > 0){
+		// return a;
+		// } else if(data.get(b).compareTo(data.get(a)) < 0 && data.get(b).compareTo(data.get()) > 0)
+
+		// data.get(c)
 		return 0;
 
 	}
@@ -308,7 +332,7 @@ public class BasicSorter implements Sorter {
 		BasicSorter sorter = new BasicSorter();
 
 		ArrayList<String> list = new ArrayList<>();
-		String[] b = new String[1000];
+		String[] b = new String[34];
 
 		for (int i = 0; i < b.length; i++) {
 			b[i] = String.valueOf((char) (random.nextInt(26) + 65)) + String.valueOf((char) (random.nextInt(26) + 65));
@@ -317,7 +341,7 @@ public class BasicSorter implements Sorter {
 		Collections.addAll(list, b);
 
 		int offset = 0;
-		sorter.mergeSort(list, offset, list.size() - offset);
+		sorter.quickSort(list, offset, list.size() - offset);
 
 		List<String> subList = list.subList(offset, list.size());
 		printList(subList);
