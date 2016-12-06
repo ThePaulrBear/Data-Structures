@@ -15,6 +15,10 @@ class Map {
 
 	private final char[][] grid; // [row][column]
 
+	// The number of non-wall spaces.
+	// Used to terminate the node tree when all the spaces are filled.
+	private int spacesCount = 0;
+
 
 	/**
 	 * A two dimensional char array, where each element is either a wall or a space.
@@ -43,6 +47,8 @@ class Map {
 				if (!isValidChar(c))
 					throw new IllegalArgumentException(
 							"An illegal character, '" + c + "' was contained in the map definition");
+				if (c == ' ')
+					spacesCount++;
 				grid[row][col] = c;
 			}
 		}
@@ -91,7 +97,45 @@ class Map {
 	}
 
 
-	private static void printSampler() {
-		System.out.println(String.valueOf(WALL) + String.valueOf(SPACE) + String.valueOf(WALL));
+	public int getSpacesCount() {
+		return spacesCount;
+	}
+
+
+	public void findSolutions() {
+		for (int i = 0; i < rows; i++) {
+			for (int j = 0; j < cols; j++) {
+				try {
+					new Node(this, i, j);
+				} catch (RuntimeException e) {
+					continue;
+				}
+			}
+		}
+	}
+
+
+	public static String overlaySolution(Map map, Solution solution) {
+		if (map != solution.map)
+			throw new IllegalArgumentException("The maps are not equal.");
+		char[][] grid = map.grid.clone();
+
+		int row = solution.startRow;
+		int col = solution.startCol;
+		for (Direction dir : solution.route) {
+			grid[row][col] = dir.arrow;
+			row += dir.deltaRow();
+			col += dir.deltaColumn();
+		}
+		grid[row][col] = 'F';
+
+		StringBuilder sb = new StringBuilder();
+		for (char[] rowArray : grid) {
+			for (char c : rowArray) {
+				sb.append(c);
+			}
+			sb.append("\n");
+		}
+		return sb.toString();
 	}
 }

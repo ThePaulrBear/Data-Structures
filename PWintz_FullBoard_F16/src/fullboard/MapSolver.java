@@ -9,13 +9,6 @@ public class MapSolver {
 
 	private static final char FINISH = 'F';
 
-	private static final char LEFT = '\u2190';
-
-	private static final char UP = '\u2191';
-
-	private static final char RIGHT = '\u2192';
-
-	private static final char DOWN = '\u2193';
 
 	private Map map;
 

@@ -43,10 +43,14 @@ public class Main {
 				List<String> subList = lines.subList(start, end);
 				Map map = new Map(subList);
 				map.print();
+				map.findSolutions();
 				start = -1;
 				end = -1;
 			}
 		}
 
+
 	}
+
+
 }
