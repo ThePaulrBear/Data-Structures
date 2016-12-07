@@ -24,6 +24,8 @@ public class Node {
 
 	private final int depth;
 
+	private int moveNumber;
+
 
 	// Root node constructor
 	public Node(Map map, int row, int col) {
@@ -32,6 +34,7 @@ public class Node {
 		this.row = row;
 		this.col = col;
 		this.depth = 1;
+		this.moveNumber = 1;
 		this.directionFromParent = null;
 
 		createChild(LEFT);
@@ -42,7 +45,7 @@ public class Node {
 	}
 
 
-	Node(Node parent, Direction directionFromParent) {
+	Node(Node parent, Direction directionFromParent) throws StackOverflowError {
 		if (parent == null || directionFromParent == null) {
 			throw new NullPointerException("Programming error: null values should not be used.");
 		}
@@ -54,23 +57,31 @@ public class Node {
 		this.depth = parent.depth + 1;
 
 		if (this.depth == map.getSpacesCount()) {
-			System.out.print(getSolution().toString());
+			this.moveNumber = parent.moveNumber;
+			map.addSolution(getSolution());
 			return;
 		}
 
-		if (isSpaceOpen(directionFromParent)) {
-			createChild(directionFromParent);
-		} else {
-			boolean endOfTheLine = !(createChild(LEFT) || createChild(UP) || createChild(RIGHT) || createChild(DOWN));
-			// if (endOfTheLine) {
-			// System.out.printf("Depth of node: %d, spaces in map: %d\n", depth, map.getSpacesCount());
-			// System.out.println(getSolution().toString());
-			// }
+		try {
+			if (isSpaceOpen(directionFromParent)) {
+				this.moveNumber = parent.moveNumber;
+				createChild(directionFromParent);
+			} else {
+				this.moveNumber = parent.moveNumber + 1;
+
+				createChild(LEFT);
+				createChild(UP);
+				createChild(RIGHT);
+				createChild(DOWN);
+			}
+		} catch (StackOverflowError e) {
+
+			this.printRoute();
 		}
 	}
 
 
-	private boolean createChild(Direction dir) {
+	private boolean createChild(Direction dir) throws StackOverflowError {
 		if (isSpaceOpen(dir)) {
 			new Node(this, dir);
 			return true;
@@ -131,7 +142,7 @@ public class Node {
 
 
 	private Solution getSolution() {
-		return new Solution(map, getRoot(), getRoute());
+		return new Solution(map, getRoot(), getRoute(), moveNumber);
 	}
 
 

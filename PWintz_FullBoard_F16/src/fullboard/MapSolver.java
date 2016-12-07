@@ -1,13 +1,6 @@
 package fullboard;
 
 public class MapSolver {
-	private static final String START_TAG = "solution";
-
-	private static final String END_TAG = "endsolution";
-
-	private static final char START = 'S';
-
-	private static final char FINISH = 'F';
 
 
 	private Map map;

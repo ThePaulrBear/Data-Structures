@@ -19,6 +19,8 @@ class Map {
 	// Used to terminate the node tree when all the spaces are filled.
 	private int spacesCount = 0;
 
+	private ArrayList<Solution> solutions = new ArrayList<>();
+
 
 	/**
 	 * A two dimensional char array, where each element is either a wall or a space.
@@ -42,8 +44,6 @@ class Map {
 				setGridValueFromLine(row, line, col);
 			}
 		}
-
-		print();
 		findSolutions();
 	}
 
@@ -78,7 +78,6 @@ class Map {
 	 * Prints the entire map.
 	 */
 	public final void print() {
-		System.out.println();
 		for (char[] row : this.grid) {
 			for (char c : row) {
 				System.out.print(c);
@@ -117,6 +116,27 @@ class Map {
 				}
 			}
 		}
+	}
+
+
+	public void addSolution(Solution s) {
+		solutions.add(s);
+	}
+
+
+	public void printSolutions() {
+		Collections.sort(solutions);
+
+		System.out.println("map");
+		if (solutions.isEmpty()) {
+			System.out.println("No solution");
+			this.print();
+		} else {
+			for (Solution s : solutions) {
+				s.print();
+			}
+		}
+		System.out.println("endmap");
 	}
 
 

@@ -94,7 +94,7 @@ public class FullBoardTester {
 		final ByteArrayOutputStream myOut = new ByteArrayOutputStream();
 		System.setOut(new PrintStream(myOut));
 
-		Main.main(null);
+		Main.main(filename);
 		String output = myOut.toString();
 		System.setOut(defaultSystemOut);
 
@@ -149,7 +149,7 @@ public class FullBoardTester {
 		final ByteArrayOutputStream myOut = new ByteArrayOutputStream();
 		System.setOut(new PrintStream(myOut));
 
-		Main.main(null);
+		Main.main(filename);
 		String output = myOut.toString();
 		System.setOut(defaultSystemOut);
 		writeStringToFile(new File("largemaps_out.txt"), output);

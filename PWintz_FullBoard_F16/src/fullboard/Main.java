@@ -13,13 +13,14 @@ public class Main {
 	private static final String FILE_NOT_FOUND = "File not found.\nComplete\n";
 
 
-	public static void main(String[] args) {
+	public static void main(String... args) {
 		if (args == null || args.length != 1) {
 			System.out.print(FILE_NOT_FOUND);
 			return;
 		}
 
 		String filename = args[0];
+		System.out.println(filename);
 
 		List<String> lines;
 		try {
@@ -42,14 +43,10 @@ public class Main {
 			if (start != -1 && end != -1) {
 				List<String> subList = lines.subList(start, end);
 				Map map = new Map(subList);
-
+				map.printSolutions();
 				start = -1;
 				end = -1;
 			}
 		}
-
-
 	}
-
-
 }
