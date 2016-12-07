@@ -33,25 +33,32 @@ class Map {
 		rows = lines.size();
 		cols = lines.get(0).length();// Working under the assumption that all lines are the same length.
 		if (rows > MAX_SIZE || cols > MAX_SIZE)
-			throw new IllegalArgumentException("Grid is too large! Must be smaller than 60 X 60.");
+			throw new IllegalArgumentException("Grid is too large! Must be no more than 60 X 60.");
 		grid = new char[rows][cols];
 
 		for (int row = 0; row < rows; row++) {
 			String line = lines.get(row);
 			for (int col = 0; col < cols; col++) {
-				if (line.length() != cols)
-					throw new RuntimeException("The length of this row was " + line.length() + ", but cols = " + cols
-							+ " in the line: \n" + line);
-
-				char c = line.charAt(col);
-				if (!isValidChar(c))
-					throw new IllegalArgumentException(
-							"An illegal character, '" + c + "' was contained in the map definition");
-				if (c == ' ')
-					spacesCount++;
-				grid[row][col] = c;
+				setGridValueFromLine(row, line, col);
 			}
 		}
+
+		print();
+		findSolutions();
+	}
+
+
+	private void setGridValueFromLine(int row, String line, int col) {
+		if (line.length() != cols)
+			throw new RuntimeException(
+					"The length of this row was " + line.length() + ", but cols = " + cols + " in the line: \n" + line);
+
+		char c = line.charAt(col);
+		if (!isValidChar(c))
+			throw new IllegalArgumentException("An illegal character, '" + c + "' was contained in the map definition");
+		if (c == SPACE)
+			spacesCount++;
+		grid[row][col] = c;
 	}
 
 
@@ -105,37 +112,19 @@ class Map {
 	public void findSolutions() {
 		for (int i = 0; i < rows; i++) {
 			for (int j = 0; j < cols; j++) {
-				try {
+				if (isSpace(i, j)) {
 					new Node(this, i, j);
-				} catch (RuntimeException e) {
-					continue;
 				}
 			}
 		}
 	}
 
 
-	public static String overlaySolution(Map map, Solution solution) {
-		if (map != solution.map)
-			throw new IllegalArgumentException("The maps are not equal.");
-		char[][] grid = map.grid.clone();
-
-		int row = solution.startRow;
-		int col = solution.startCol;
-		for (Direction dir : solution.route) {
-			grid[row][col] = dir.arrow;
-			row += dir.deltaRow();
-			col += dir.deltaColumn();
+	public char[][] getDeepCopyOfGrid() {
+		char[][] result = grid.clone();
+		for (int i = 0; i < result.length; i++) {
+			result[i] = result[i].clone();
 		}
-		grid[row][col] = 'F';
-
-		StringBuilder sb = new StringBuilder();
-		for (char[] rowArray : grid) {
-			for (char c : rowArray) {
-				sb.append(c);
-			}
-			sb.append("\n");
-		}
-		return sb.toString();
+		return result;
 	}
 }

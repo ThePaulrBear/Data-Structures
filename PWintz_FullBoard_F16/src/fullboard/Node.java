@@ -20,14 +20,6 @@ public class Node {
 
 	private final Node parent;
 
-	private final Node left;
-
-	private final Node up;
-
-	private final Node right;
-
-	private final Node down;
-
 	private final Direction directionFromParent;
 
 	private final int depth;
@@ -39,14 +31,14 @@ public class Node {
 		this.map = map;
 		this.row = row;
 		this.col = col;
-		this.depth = 0;
-
-		this.left = createChild(LEFT);
-		this.up = createChild(UP);
-		this.right = createChild(RIGHT);
-		this.down = createChild(DOWN);
-
+		this.depth = 1;
 		this.directionFromParent = null;
+
+		createChild(LEFT);
+		createChild(UP);
+		createChild(RIGHT);
+		createChild(DOWN);
+
 	}
 
 
@@ -62,28 +54,28 @@ public class Node {
 		this.depth = parent.depth + 1;
 
 		if (this.depth == map.getSpacesCount()) {
-			printRoute();
-
-			Solution sol = getSolution();
-			String solution = map.overlaySolution(map, sol);
-			System.out.print(solution);
-			throw new RuntimeException("Temp exception: Stopped for debugging");
+			System.out.print(getSolution().toString());
+			return;
 		}
 
-		// TODO: Right now, the the token does not continue in the
-		// same direction, and can turn at each space.
-		this.left = createChild(LEFT);
-		this.up = createChild(UP);
-		this.right = createChild(RIGHT);
-		this.down = createChild(DOWN);
+		if (isSpaceOpen(directionFromParent)) {
+			createChild(directionFromParent);
+		} else {
+			boolean endOfTheLine = !(createChild(LEFT) || createChild(UP) || createChild(RIGHT) || createChild(DOWN));
+			// if (endOfTheLine) {
+			// System.out.printf("Depth of node: %d, spaces in map: %d\n", depth, map.getSpacesCount());
+			// System.out.println(getSolution().toString());
+			// }
+		}
 	}
 
 
-	private Node createChild(Direction dir) {
+	private boolean createChild(Direction dir) {
 		if (isSpaceOpen(dir)) {
-			return new Node(this, dir);
+			new Node(this, dir);
+			return true;
 		} else {
-			return null;
+			return false;
 		}
 	}
 
@@ -124,6 +116,11 @@ public class Node {
 	}
 
 
+	/**
+	 * Finds the ancestor node that has no parent.
+	 * 
+	 * @return
+	 */
 	private Node getRoot() {
 		Node cur = this;
 		while (cur.parent != null) {

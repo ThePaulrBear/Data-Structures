@@ -28,20 +28,4 @@ public class MapSolver {
 	}
 
 
-	private class Solution {
-
-		char[][] map;
-
-
-		public String toString() {
-			StringBuilder sb = new StringBuilder();
-			for (char[] row : map) {
-				for (char c : row) {
-					sb.append(c);
-				}
-				sb.append('\n');
-			}
-			return sb.toString();
-		}
-	}
 }
